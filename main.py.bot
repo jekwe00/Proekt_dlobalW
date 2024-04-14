@@ -1,0 +1,195 @@
+import discord
+from discord.ext import commands
+
+import os
+import random
+import time
+
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+bot = commands.Bot(command_prefix='$', intents=intents)
+
+
+@bot.event
+async def on_ready():
+    print(f' я готов! {bot.user}')
+
+@bot.command()
+async def hello(ctx):
+    await ctx.send(f'Привет я Экобот! {bot.user}!')
+    await ctx.send(f'список команд: infa, problem, fakt 1,2. test , xs , {bot.user}!')
+
+@bot.command()
+async def poka (ctx):
+    await ctx.send(f'Пока человек!!!!  {bot.user}!')
+
+
+@bot.command()
+async def heh(ctx, count_heh = 5):
+    await ctx.send("he" * count_heh)
+
+
+#Фотки
+@bot.command()
+async def problem (ctx):
+    file = os.listdir("images")
+    rand_problem = random.choice(file)
+
+    with open(f"images/{rand_problem}","rb") as file:
+        picture = discord.File(file) 
+    await ctx.send(file=picture)  
+    await ctx.send(" Наглядный пример проблем Глобального потеплениее:")
+
+
+@bot.command()
+async def privet  (ctx):
+    print('faza 1')
+    author=ctx.message.author
+    await ctx.send('Прив '+f'{ author.mention }   Рад Вас видеть')
+
+
+
+starts=['из за человека' , 'да' , 'нет']
+answer=['Правильно, молодец']
+
+starts1=['бот' , 'эй' ]
+answer1=['Что такое?' , 'Я туууут ']
+
+
+
+@bot.event
+#ответ бота на выражние
+async def on_message( message ):
+    await bot.process_commands(message)
+    msg=message.content.lower()
+    if msg in starts :
+        await message.channel.send(random.choice(answer))
+    if msg in starts1 :
+        await message.channel.send(random.choice(answer1))    
+
+
+@bot.command()
+async def fopros (ctx):
+    await ctx.send(f'Из за чего глабальное потепление?')
+    await ctx.send(f'Если ответ не правильный то я буду молчать!')
+
+@bot.command()
+async def fopros1 (ctx):
+    await ctx.send(f'Мельницы полезны?')
+    await ctx.send(f'Если ответ не правильный то я буду молчать!')    
+
+@bot.command()
+async def fopros2 (ctx):
+    await ctx.send(f'А машины полезны?')
+    await ctx.send(f'Если ответ не правильный то я буду молчать!')    
+
+
+
+        
+@bot.command()
+async def infa (ctx):
+    await ctx.send(f'Глабальное потепление: Долгосрочное повышение средней температуры климатической системы Земли, происходящее уже более века, основной причиной чего, по мнению подавляющего большинства учёных, является человеческая деятельность. {bot.user}!')
+
+@bot.command()
+async def fakt1 (ctx):
+    await ctx.send(f'Причины глобального потепления: парниковый эффект  {bot.user}!')
+
+@bot.command()
+async def fakt2 (ctx):
+    await ctx.send(f'Потепление негативно влияет на многих людей, особенно тех, кто страдает сердечно-сосудистыми, лёгочными болезнями и заболеваниями верхних дыхательных путей. Наблюдается рост психических отклонений, стрессов и депрессий.  {bot.user}!')
+
+def get_class(image,model,classes):
+  from keras.models import load_model  # TensorFlow is required for Keras to work
+  from PIL import Image, ImageOps  # Install pillow instead of PIL
+  import numpy as np
+
+  # Disable scientific notation for clarity
+  np.set_printoptions(suppress=True)
+
+  # Load the model
+  model = load_model(model, compile=False)
+
+  # Load the labels
+  class_names = open(classes, "r").readlines()
+
+  # Create the array of the right shape to feed into the keras model
+  # The 'length' or number of images you can put into the array is
+  # determined by the first position in the shape tuple, in this case 1
+  data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
+
+  # Replace this with the path to your image
+  image = Image.open(image).convert("RGB")
+
+  # resizing the image to be at least 224x224 and then cropping from the center
+  size = (224, 224)
+  image = ImageOps.fit(image, size, Image.Resampling.LANCZOS)
+
+  # turn the image into a numpy array
+  image_array = np.asarray(image)
+
+  # Normalize the image
+  normalized_image_array = (image_array.astype(np.float32) / 127.5) - 1
+
+  # Load the image into the array
+  data[0] = normalized_image_array
+
+  # Predicts the model
+  prediction = model.predict(data)
+  index = np.argmax(prediction)
+
+  class_name = class_names[index]
+  confidence_score = prediction[0][index]
+
+  # Print prediction and confidence score
+  print("Class:", class_name[2:], end="")
+  print("Confidence Score:", confidence_score)
+
+  return index 
+  
+@bot.command()  
+async def xs (ctx):
+    files = ctx.message.attachments
+    await ctx.send(files)
+    await ctx.send(files[0].filename)
+    await ctx.send(files[0].url)
+    syf = files[0].filename.split('.')[-1]
+    await files[0].save(f'file.{syf}')
+
+@bot.command()
+async def test (ctx):
+    files = ctx.message.attachments
+    syf = files[0].filename.split('.')[-1]
+
+    if syf == 'jpg'\
+        and syf != 'jpeng'\
+        and syf != 'png':
+        await ctx.send(" не то")
+        return  
+
+
+    await files[0].save(f'file.{syf}')
+    indx = get_class(f'file.{syf}'
+                    ,'keras_model.h5'      
+                    ,'labels.txt')   
+    
+    if indx == 0:
+        await ctx.send("Это Мельница")
+        await ctx.send("Она экологичная и полезна.Они не несут вреда")
+    elif indx == 1:
+        await ctx.send("Это Панели")
+        await ctx.send("Ещё одна Экоразработка.Они не несут вреда")
+    elif indx == 2:
+        await ctx.send("Это Заводы")
+        await ctx.send("Заводы играют значительную роль в глобальном потеплении, так как они являются одним из крупнейших источников выбросов парниковых газов в атмосферу.")
+    elif indx == 3:
+        await ctx.send("Это Машины")
+        await ctx.send(" Выбросы выхлопных газов, таких как углекислый газ, оксиды азота и угарный газ, приводят к увеличению парникового эффекта и изменению климата планеты. ")    
+
+
+
+
+
+
+bot.run
